@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Flashcards - Bài 27 (Đầy đủ)</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; text-align: center; }
+    .card-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; }
+    .card { width: 200px; height: 170px; perspective: 1000px; cursor: pointer; }
+    .inner {
+      width: 100%; height: 100%; position: relative;
+      transform-style: preserve-3d; transition: transform 0.6s;
+    }
+    .card.flipped .inner { transform: rotateY(180deg); }
+    .front, .back {
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden; border: 1px solid #ccc;
+      border-radius: 10px; background: white;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+      display: flex; justify-content: center;
+      align-items: center; flex-direction: column;
+      font-size: 18px; padding: 10px;
+    }
+    .back { transform: rotateY(180deg); }
+    .score { margin-top: 20px; font-size: 18px; }
+    button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+<h1>Flashcards - Bài 27 Minna no Nihongo (Đầy đủ)</h1>
+<div class="card-container" id="bai27"></div>
+<div class="score" id="scoreBoard">Điểm đúng: 0 | Sai: 0</div>
+<script>
+let scoreCorrectCount = 0;
+let scoreWrongCount = 0;
+const flashcards = [{ kanji: "飼います", hiragana: "かいます", meaning: "nuôi (động vật)" },
+    { kanji: "建てます", hiragana: "たてます", meaning: "xây, xây dựng" },
+    { kanji: "走ります", hiragana: "はしります", meaning: "chạy (trên đường)" },
+    { kanji: "取ります", hiragana: "とります", meaning: "xin (nghỉ)" },
+    { kanji: "見えます", hiragana: "みえます", meaning: "có thể nhìn thấy" },
+    { kanji: "聞こえます", hiragana: "きこえます", meaning: "có thể nghe thấy" },
+    { kanji: "開きます", hiragana: "ひらきます", meaning: "mở (lớp học)" },
+    { kanji: "心配（な）", hiragana: "しんぱい（な）", meaning: "lo lắng" },
+    { kanji: "ペット", hiragana: "", meaning: "vật nuôi, thú cưng" },
+    { kanji: "花火", hiragana: "はなび", meaning: "pháo hoa" },
+    { kanji: "景色", hiragana: "けしき", meaning: "phong cảnh" },
+    { kanji: "昼間", hiragana: "ひるま", meaning: "thời gian ban ngày" },
+    { kanji: "昔", hiragana: "むかし", meaning: "ngày xưa" },
+    { kanji: "道具", hiragana: "どうぐ", meaning: "dụng cụ, công cụ" },
+    { kanji: "自動販売機", hiragana: "じどうはんばいき", meaning: "máy bán hàng tự động" },
+    { kanji: "通信販売", hiragana: "つうしんはんばい", meaning: "bán hàng qua điện thoại/thư đặt hàng" },
+    { kanji: "クリーニング", hiragana: "", meaning: "giặt ủi" },
+    { kanji: "マンション", hiragana: "", meaning: "chung cư" },
+    { kanji: "台所", hiragana: "だいどころ", meaning: "nhà bếp" },
+    { kanji: "～教室", hiragana: "～きょうしつ", meaning: "lớp học ~" },
+    { kanji: "パーティールーム", hiragana: "", meaning: "phòng tổ chức tiệc" },
+    { kanji: "後", hiragana: "あと", meaning: "sau" },
+    { kanji: "しか", hiragana: "しか", meaning: "chỉ (dùng với thể phủ định)" },
+    { kanji: "ほかの", hiragana: "ほかの", meaning: "khác" },
+    { kanji: "はっきり", hiragana: "", meaning: "rõ, rõ ràng" },
+    { kanji: "ほとんど", hiragana: "", meaning: "hầu hết, hầu như (dùng với thể phủ định: hầu như không)" },
+    { kanji: "関西空港", hiragana: "かんさいくうこう", meaning: "sân bay Kansai" },
+    { kanji: "伊豆", hiragana: "いず", meaning: "Izu (một bán đảo ở tỉnh Shizuoka)" },
+    { kanji: "日曜大工", hiragana: "にちようだいく", meaning: "làm mộc chủ nhật" },
+    { kanji: "本棚", hiragana: "ほんだな", meaning: "giá sách" },
+    { kanji: "夢", hiragana: "ゆめ", meaning: "giấc mơ, ước mơ" },
+    { kanji: "いつか", hiragana: "", meaning: "một ngày nào đó" },
+    { kanji: "家", hiragana: "いえ", meaning: "nhà" },
+    { kanji: "子どもたち", hiragana: "こどもたち", meaning: "trẻ em" },
+    { kanji: "大好き（な）", hiragana: "だいすき（な）", meaning: "rất thích" },
+    { kanji: "主人公", hiragana: "しゅじんこう", meaning: "nhân vật chính" },
+    { kanji: "形", hiragana: "かたち", meaning: "hình, dạng" },
+    { kanji: "不思議（な）", hiragana: "ふしぎ（な）", meaning: "bí ẩn, kỳ thú, kỳ lạ" },
+    { kanji: "ポケット", hiragana: "", meaning: "túi áo, túi quần" },
+    { kanji: "例えば", hiragana: "たとえば", meaning: "ví dụ (như)" },
+    { kanji: "付けます", hiragana: "つけます", meaning: "gắn, lắp, thêm" },
+    { kanji: "自由に", hiragana: "じゆうに", meaning: "một cách tự do" },
+    { kanji: "空", hiragana: "そら", meaning: "bầu trời" },
+    { kanji: "飛びます", hiragana: "とびます", meaning: "bay" },
+    { kanji: "自分", hiragana: "じぶん", meaning: "bản thân, tự mình" },
+    { kanji: "将来", hiragana: "しょうらい", meaning: "tương lai" }];
+
+function createCard(card) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = `
+    <div class="inner">
+      <div class="front">${card.kanji}</div>
+      <div class="back">
+        <strong>${card.meaning}</strong><br><small>${card.hiragana}</small>
+        <br><button onclick="scoreCorrect(event)">✔️</button>
+        <button onclick="scoreWrong(event)">❌</button>
+      </div>
+    </div>
+  `;
+  div.onclick = (e) => {
+    if (!e.target.matches('button')) {
+      div.classList.toggle('flipped');
+    }
+  };
+  return div;
+}
+
+function scoreCorrect(event) {
+  event.stopPropagation(); scoreCorrectCount++;
+  updateScore(); event.target.parentElement.style.background = '#d4edda';
+}
+
+function scoreWrong(event) {
+  event.stopPropagation(); scoreWrongCount++;
+  updateScore(); event.target.parentElement.style.background = '#f8d7da';
+}
+
+function updateScore() {
+  document.getElementById('scoreBoard').innerText =
+    "Điểm đúng: " + scoreCorrectCount + " | Sai: " + scoreWrongCount;
+}
+
+const container = document.getElementById("bai27");
+flashcards.forEach(card => container.appendChild(createCard(card)));
+</script>
+</body>
+</html>
